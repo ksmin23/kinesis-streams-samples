@@ -1,3 +1,6 @@
 # pip install boto3
 boto3==1.14.13
 botocore==1.17.13
+
+# pip install pybuilder
+pybuilder==0.12.7
