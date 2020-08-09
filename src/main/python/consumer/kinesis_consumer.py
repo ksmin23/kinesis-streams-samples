@@ -2,10 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
-import sys
 import time
-import json
-import pprint
 import argparse
 
 import boto3
