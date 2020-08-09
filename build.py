@@ -13,7 +13,6 @@ from pybuilder.utils import assert_can_execute, read_file, execute_command, as_l
 use_plugin("python.core")
 use_plugin("python.install_dependencies")
 use_plugin("exec")
-use_plugin("copy_resources")
 
 name = "kinesis-streams-samples" #pylint: disable=C0103
 default_task = "package" #pylint: disable=C0103
