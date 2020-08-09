@@ -11,16 +11,12 @@ from pybuilder.utils import assert_can_execute, read_file, execute_command, as_l
   discover_files_matching
 
 use_plugin("python.core")
-#use_plugin("python.unittest")
-#use_plugin("python.flake8")
-#use_plugin("python.coverage")
-#use_plugin("python.distutils")
-use_plugin('python.install_dependencies')
+use_plugin("python.install_dependencies")
 use_plugin("exec")
+use_plugin("copy_resources")
 
-
-name = "kinesis-streams-samples"
-default_task = "publish"
+name = "kinesis-streams-samples" #pylint: disable=C0103
+default_task = "package" #pylint: disable=C0103
 
 
 @init
@@ -40,10 +36,11 @@ def check_if_pylint_exists(logger):
 @depends('prepare')
 @task(description='check code style using pylint')
 def checkstyle(project, logger):
+  #pylint: disable=R0914
   logger.info("Executing pylint on project sources.")
 
   src_dir = project.get_property('dir_source_main_python')
-  py_files = [e for e in discover_files_matching(src_dir, '*.py')]
+  py_files = [e for e in discover_files_matching(src_dir, '*.py')] #pylint: disable=R1721
   cmd = as_list('pylint', '--rcfile=.pylintrc', py_files)
   out_fname = project.expand_path("$dir_reports/{}".format('pylint'))
   err_fname = '{}.err'.format(out_fname)
@@ -51,7 +48,7 @@ def checkstyle(project, logger):
   report = read_file(out_fname)
   error = read_file(err_fname)
 
-  if exit_code != 0 and len(error):
+  if exit_code != 0 and error:
     msg = 'Errors occurred while running pylint, check {}'.format(err_fname)
     logger.error(msg)
     raise BuildFailedException(msg)
@@ -64,7 +61,7 @@ def checkstyle(project, logger):
     pat = re.compile(pattern)
     res = re.search(pat, report[-2])
     score = float(res.group(1))
-  except Exception as ex:
+  except Exception as _:
     traceback.print_exc()
     raise BuildFailedException('fail to parse pylint score.')
 
@@ -72,14 +69,35 @@ def checkstyle(project, logger):
   if project.get_property('break_build') and score < cut_off:
     msg = 'Fail to pass (score={:.2f}, cut_off={:.2f})'.format(score, cut_off)
     raise BuildFailedException(msg)
-  else:
-    logger.info('Pass (score={:.2f}, cut_off={:.2f})'.format(score, cut_off))
+  logger.info('Pass (score={:.2f}, cut_off={:.2f})'.format(score, cut_off))
 
 
 @task(description='kinesis data streams consumer')
 def kinesis_consumer(project):
   src_name = 'consumer'
   dist_name = 'kinesis-streams-{}'.format(src_name)
-  dist_dir = '{}/dist/{}'.format(project.get_property('dir_target'), dist_name)
+  dir_dist = '{}/dist/{}'.format(project.get_property('dir_target'), dist_name)
   project.set_property('dir_source_main_python', 'src/main/python/{}'.format(src_name))
-  project.set_property('dir_dist', dist_dir)
+  project.set_property('dir_dist', dir_dist)
+
+
+@task(description='kinesis data streams producers')
+def kinesis_producers(project):
+  src_name = 'producers'
+  dist_name = 'kinesis-streams-{}'.format(src_name)
+  dir_dist = '{}/dist/{}'.format(project.get_property('dir_target'), dist_name)
+  project.set_property('dir_source_main_python', 'src/main/python/{}'.format(src_name))
+  project.set_property('dir_dist', dir_dist)
+
+
+@task(description='kinesis data streams producer: stocks')
+def kinesis_stocks_producer(project):
+  src_name = 'producers'
+  dist_name = 'kinesis-streams-stocks'
+  dir_dist = '{}/dist/{}'.format(project.get_property('dir_target'), dist_name)
+  project.set_property('dir_source_main_python', 'src/main/python/{}'.format(src_name))
+  project.set_property('dir_dist', dir_dist)
+  #pylint: disable=W1401
+  cmd = '''find {dir_dist}/ -type f -name '*.py' ! -name '{src_file}' -exec rm -f {{}} \;'''.format(
+    dir_dist=dir_dist, src_file='stocks.py')
+  project.set_property('package_command', cmd)
