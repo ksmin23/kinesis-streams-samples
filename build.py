@@ -64,11 +64,11 @@ def checkstyle(project, logger):
     traceback.print_exc()
     raise BuildFailedException('fail to parse pylint score.')
 
-  cut_off = 8.5
-  if project.get_property('break_build') and score < cut_off:
-    msg = 'Fail to pass (score={:.2f}, cut_off={:.2f})'.format(score, cut_off)
+  cutoff = 8.5
+  if project.get_property('break_build') and score < cutoff:
+    msg = 'Fail to pass (score={:.2f}, cutoff={:.2f})'.format(score, cutoff)
     raise BuildFailedException(msg)
-  logger.info('Pass (score={:.2f}, cut_off={:.2f})'.format(score, cut_off))
+  logger.info('Pass (score={:.2f}, cutoff={:.2f})'.format(score, cutoff))
 
 
 @task(description='kinesis data streams consumer')
