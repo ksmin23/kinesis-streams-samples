@@ -2,7 +2,6 @@
 # -*- encoding: utf-8 -*-
 # vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
-import json
 import random
 import time
 import os
@@ -16,6 +15,7 @@ KINESIS_STREAM_NAME = os.getenv('KINESIS_STREAM_NAME', 'csv-word-count-streams')
 
 kinesis = boto3.client('kinesis', region_name=AWS_REGION_NAME)
 
+#pylint: disable=C0301
 SENTENCES = [
 '''Amazon Kinesis Data Analytics is the easiest way to analyze streaming data, gain actionable insights, and respond to your business and customer needs in real time.''',
 '''Amazon Kinesis Data Analytics reduces the complexity of building, managing, and integrating streaming applications with other AWS services.''',
@@ -33,11 +33,11 @@ SENTENCES = [
 ]
 
 while True:
-  idx = random.choice([e for e in range(len(SENTENCES))])
+  idx = random.choice([e for e in range(len(SENTENCES))]) #pylint: disable=R1721
   words = ['{},1'.format(e.strip().lower()) for e in SENTENCES[idx].replace(',', ' ').split() if e.strip()]
   records = []
   for wc in words:
-    partition_key = 'pk-{:05}'.format(random.randint(1, 1024))
+    partition_key = 'pk-{:05}'.format(random.randint(1, 1024)) #pylint: disable=C0103
     records.append({'Data': wc, 'PartitionKey': partition_key})
   print('\n'.join(words))
 
