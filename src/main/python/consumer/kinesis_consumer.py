@@ -2,10 +2,13 @@
 # -*- encoding: utf-8 -*-
 # vim: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
-import time
 import argparse
+import random
+import time
 
 import boto3
+
+random.seed(47)
 
 SHARD_ITER_TYPE = ('TRIM_HORIZON', 'LATEST')
 
@@ -23,7 +26,8 @@ def main():
 
   kinesis_client = boto3.client('kinesis', region_name=options.region_name)
   response = kinesis_client.describe_stream(StreamName=stream_name)
-  shard_id = response['StreamDescription']['Shards'][0]['ShardId']
+  shard_id_list = [e['ShardId'] for e in response['StreamDescription']['Shards']]
+  shard_id = random.choice(shard_id_list)
 
   shard_iterator = kinesis_client.get_shard_iterator(StreamName=stream_name,
                                                      ShardId=shard_id,
@@ -31,11 +35,11 @@ def main():
 
   shard_iter = shard_iterator['ShardIterator']
   record_response = kinesis_client.get_records(ShardIterator=shard_iter, Limit=123)
-  print(record_response.get('Records', {}))
+  print(record_response.get('Records', []))
 
   while 'NextShardIterator' in record_response:
     record_response = kinesis_client.get_records(ShardIterator=record_response['NextShardIterator'], Limit=123)
-    print(record_response.get('Records', {}))
+    print(record_response.get('Records', []))
 
     # wait for 5 seconds
     time.sleep(5)
